@@ -167,15 +167,27 @@ export default function ClipsView({
         <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', padding: 20 }}>
             <div style={{ flexGrow: 1 }}>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer' }}>
                 <div
-                  style={{ cursor: 'pointer', paddingTop: '2px' }}
-                  onClick={() => emitSetView({ view: EHighlighterView.STREAM })}
+                  style={{ paddingTop: '2px' }}
+                  onClick={() =>
+                    emitSetView(
+                      streamId
+                        ? { view: EHighlighterView.STREAM }
+                        : { view: EHighlighterView.SETTINGS },
+                    )
+                  }
                 >
                   <i className="icon-back" />
                 </div>{' '}
                 <h1
-                  onClick={() => emitSetView({ view: EHighlighterView.STREAM })}
+                  onClick={() =>
+                    emitSetView(
+                      streamId
+                        ? { view: EHighlighterView.STREAM }
+                        : { view: EHighlighterView.SETTINGS },
+                    )
+                  }
                   style={{ margin: 0 }}
                 >
                   {' '}
