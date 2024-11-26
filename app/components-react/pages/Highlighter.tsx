@@ -8,22 +8,26 @@ import ClipsView from 'components-react/highlighter/ClipsView';
 import UpdateModal from 'components-react/highlighter/UpdateModal';
 
 export default function Highlighter(props: { params?: { view: string } }) {
-  const openViewFromParams = props?.params?.view || '';
-
   const { HighlighterService } = Services;
   const v = useVuex(() => ({
-    dismissedTutorial: HighlighterService.views.dismissedTutorial,
     useAiHighlighter: HighlighterService.views.useAiHighlighter,
     isUpdaterRunning: HighlighterService.views.isUpdaterRunning,
     highlighterVersion: HighlighterService.views.highlighterVersion,
     progress: HighlighterService.views.updaterProgress,
+    clipsAmount: HighlighterService.views.clips.length,
+    streamAmount: HighlighterService.views.highlightedStreams.length,
   }));
 
-  const [viewState, setViewState] = useState<IViewState>(
-    openViewFromParams === EHighlighterView.STREAM || v.dismissedTutorial
-      ? { view: EHighlighterView.STREAM }
-      : { view: EHighlighterView.SETTINGS },
-  );
+  let initialViewState: IViewState;
+
+  if (v.streamAmount > 0 && v.clipsAmount > 0) {
+    initialViewState = { view: EHighlighterView.STREAM };
+  } else if (v.clipsAmount > 0) {
+    initialViewState = { view: EHighlighterView.CLIPS, id: undefined };
+  } else {
+    initialViewState = { view: EHighlighterView.SETTINGS };
+  }
+  const [viewState, setViewState] = useState<IViewState>(initialViewState);
 
   const updaterModal = (
     <UpdateModal
