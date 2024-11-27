@@ -841,9 +841,12 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
               ),
             });
 
-            this.usageStatisticsService.recordAnalyticsEvent('Highlighter', {
-              type: 'NotificationShow',
-            });
+            this.usageStatisticsService.recordAnalyticsEvent(
+              this.views.useAiHighlighter ? 'AIHighlighter' : 'Highlighter',
+              {
+                type: 'NotificationShow',
+              },
+            );
           }
 
           streamStarted = false;
@@ -879,9 +882,12 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
   notificationAction() {
     this.navigationService.navigate('Highlighter');
     this.dismissablesService.dismiss(EDismissable.HighlighterNotification);
-    this.usageStatisticsService.recordAnalyticsEvent('Highlighter', {
-      type: 'NotificationClick',
-    });
+    this.usageStatisticsService.recordAnalyticsEvent(
+      this.views.useAiHighlighter ? 'AIHighlighter' : 'Highlighter',
+      {
+        type: 'NotificationClick',
+      },
+    );
   }
 
   addClips(
@@ -1157,6 +1163,10 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
 
   setAiHighlighter(state: boolean) {
     this.SET_USE_AI_HIGHLIGHTER(state);
+    this.usageStatisticsService.recordAnalyticsEvent('AIHighlighter', {
+      type: 'Toggled',
+      value: state,
+    });
   }
 
   toggleAiHighlighter() {
@@ -1197,10 +1207,13 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
       {
         concurrency: os.cpus().length,
         onProgress: completed => {
-          this.usageStatisticsService.recordAnalyticsEvent('Highlighter', {
-            type: 'ClipImport',
-            source: completed.source,
-          });
+          this.usageStatisticsService.recordAnalyticsEvent(
+            this.views.useAiHighlighter ? 'AIHighlighter' : 'Highlighter',
+            {
+              type: 'ClipImport',
+              source: completed.source,
+            },
+          );
           this.UPDATE_CLIP({
             path: completed.path,
             loaded: true,
@@ -1489,17 +1502,21 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
             `Export complete - Expected Frames: ${this.views.exportInfo.totalFrames} Actual Frames: ${currentFrame}`,
           );
 
-          this.usageStatisticsService.recordAnalyticsEvent('Highlighter', {
-            type: 'ExportComplete',
-            numClips: nClips,
-            transition: this.views.transition.type,
-            transitionDuration: this.views.transition.duration,
-            resolution: this.views.exportInfo.resolution,
-            fps: this.views.exportInfo.fps,
-            preset: this.views.exportInfo.preset,
-            duration: totalFramesAfterTransitions / exportOptions.fps,
-            isPreview: preview,
-          });
+          this.usageStatisticsService.recordAnalyticsEvent(
+            this.views.useAiHighlighter ? 'AIHighlighter' : 'Highlighter',
+            {
+              type: 'ExportComplete',
+              numClips: nClips,
+              totalClips: this.views.clips.length,
+              transition: this.views.transition.type,
+              transitionDuration: this.views.transition.duration,
+              resolution: this.views.exportInfo.resolution,
+              fps: this.views.exportInfo.fps,
+              preset: this.views.exportInfo.preset,
+              duration: totalFramesAfterTransitions / exportOptions.fps,
+              isPreview: preview,
+            },
+          );
           break;
         }
       }
@@ -1513,16 +1530,22 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
 
       if (e instanceof HighlighterError) {
         this.SET_EXPORT_INFO({ error: e.userMessage });
-        this.usageStatisticsService.recordAnalyticsEvent('Highlighter', {
-          type: 'ExportError',
-          error: e.constructor.name,
-        });
+        this.usageStatisticsService.recordAnalyticsEvent(
+          this.views.useAiHighlighter ? 'AIHighlighter' : 'Highlighter',
+          {
+            type: 'ExportError',
+            error: e.constructor.name,
+          },
+        );
       } else {
         this.SET_EXPORT_INFO({ error: $t('An error occurred while exporting the video') });
-        this.usageStatisticsService.recordAnalyticsEvent('Highlighter', {
-          type: 'ExportError',
-          error: 'Unknown',
-        });
+        this.usageStatisticsService.recordAnalyticsEvent(
+          this.views.useAiHighlighter ? 'AIHighlighter' : 'Highlighter',
+          {
+            type: 'ExportError',
+            error: 'Unknown',
+          },
+        );
       }
     }
 
@@ -1588,9 +1611,12 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
         });
 
         this.SET_UPLOAD_INFO({ error: true });
-        this.usageStatisticsService.recordAnalyticsEvent('Highlighter', {
-          type: 'UploadYouTubeError',
-        });
+        this.usageStatisticsService.recordAnalyticsEvent(
+          this.views.useAiHighlighter ? 'AIHighlighter' : 'Highlighter',
+          {
+            type: 'UploadYouTubeError',
+          },
+        );
       }
     }
 
@@ -1602,14 +1628,17 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
     });
 
     if (result) {
-      this.usageStatisticsService.recordAnalyticsEvent('Highlighter', {
-        type: 'UploadYouTubeSuccess',
-        privacy: options.privacyStatus,
-        videoLink:
-          options.privacyStatus === 'public'
-            ? `https://youtube.com/watch?v=${result.id}`
-            : undefined,
-      });
+      this.usageStatisticsService.recordAnalyticsEvent(
+        this.views.useAiHighlighter ? 'AIHighlighter' : 'Highlighter',
+        {
+          type: 'UploadYouTubeSuccess',
+          privacy: options.privacyStatus,
+          videoLink:
+            options.privacyStatus === 'public'
+              ? `https://youtube.com/watch?v=${result.id}`
+              : undefined,
+        },
+      );
     }
   }
 
@@ -1754,6 +1783,12 @@ export class HighlighterService extends PersistentStatefulService<IHighligherSta
           progressTracker.updateProgressFromHighlighter(progress);
         },
       );
+
+      this.usageStatisticsService.recordAnalyticsEvent('AIHighlighter', {
+        type: 'Detection',
+        clips: highlighterResponse.length,
+        game: 'Fortnite', // hardcode for now
+      });
       console.log('✅ Final HighlighterData', highlighterResponse);
     } catch (error: unknown) {
       if (error instanceof Error && error.message === 'Highlight generation canceled') {
